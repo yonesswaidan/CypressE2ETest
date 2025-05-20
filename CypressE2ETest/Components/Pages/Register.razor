@@ -1,0 +1,81 @@
+﻿@page "/register"
+@using System.ComponentModel.DataAnnotations
+@inject UserService UserService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<h3>Opret Konto</h3>
+
+@if (isSuccess)
+{
+    <p style="color:green;">Kontoen blev oprettet!</p>
+    <a href="/">Gå til login</a>
+}
+else
+{
+    <EditForm EditContext="registerEditContext" OnValidSubmit="HandleRegister">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div>
+            <label>Brugernavn:</label>
+            <InputText @bind-Value="registerModel.Username" class="form-control" />
+        </div>
+
+        <div>
+            <label>Adgangskode:</label>
+            <InputText @bind-Value="registerModel.Password" type="password" class="form-control" />
+        </div>
+
+        <button type="submit">Opret Konto</button>
+    </EditForm>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <p style="color:red;">@errorMessage</p>
+    }
+}
+
+<button @onclick="NavigateToLogin">Tilbage til login</button>
+
+@code {
+    private RegisterModel registerModel = new RegisterModel();
+    private EditContext registerEditContext;
+
+    private bool isSuccess = false;
+    private string errorMessage;
+
+    protected override void OnInitialized()
+    {
+        registerEditContext = new EditContext(registerModel);
+    }
+
+    private async Task HandleRegister()
+    {
+        var success = await UserService.RegisterUserAsync(registerModel.Username, registerModel.Password);
+        if (success)
+        {
+            isSuccess = true;
+            errorMessage = null;
+        }
+        else
+        {
+            isSuccess = false;
+            errorMessage = "Registrering fejlede. Brugernavn kan allerede eksistere eller data er ugyldig.";
+        }
+    }
+
+    private void NavigateToLogin()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    public class RegisterModel
+    {
+        [Required(ErrorMessage = "Brugernavn er påkrævet")]
+        public string Username { get; set; }
+
+        [Required(ErrorMessage = "Adgangskode er påkrævet")]
+        public string Password { get; set; }
+    }
+}

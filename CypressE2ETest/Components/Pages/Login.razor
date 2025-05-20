@@ -1,0 +1,84 @@
+﻿@page "/"
+@using System.ComponentModel.DataAnnotations
+@inject UserService UserService
+@inject NavigationManager Navigation
+@inject UserState UserState
+@rendermode InteractiveServer
+
+<h3>Login</h3>
+
+@if (isSuccess)
+{
+    <p style="color:green;">Du er nu logget ind!</p>
+}
+else
+{
+    <EditForm EditContext="loginEditContext" OnValidSubmit="HandleLogin">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div>
+            <label>Brugernavn:</label>
+            <InputText @bind-Value="loginModel.Username" class="form-control" />
+        </div>
+
+        <div>
+            <label>Adgangskode:</label>
+            <InputText @bind-Value="loginModel.Password" type="password" class="form-control" />
+        </div>
+
+        <button type="submit">Log ind</button>
+    </EditForm>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <p style="color:red;">@errorMessage</p>
+    }
+}
+
+<button @onclick="NavigateToRegister">Opret ny konto</button>
+
+@code {
+    private LoginModel loginModel = new();
+    private EditContext loginEditContext;
+
+    private bool isSuccess = false;
+    private string errorMessage;
+
+    protected override void OnInitialized()
+    {
+        loginEditContext = new EditContext(loginModel);
+    }
+
+    private async Task HandleLogin()
+    {
+        var result = await UserService.ValidateUserAsync(loginModel.Username, loginModel.Password);
+
+        if (result)
+        {
+            UserState.SetUser(loginModel.Username); // Opdater UserState her
+            isSuccess = true;
+            errorMessage = null;
+            Navigation.NavigateTo("/booking");
+        }
+        else
+        {
+            errorMessage = "Forkert brugernavn eller adgangskode.";
+        }
+    }
+
+
+    private void NavigateToRegister()
+    {
+        Navigation.NavigateTo("/register");
+    }
+
+    public class LoginModel
+    {
+        [Required(ErrorMessage = "Brugernavn er påkrævet")]
+        public string Username { get; set; }
+
+        [Required(ErrorMessage = "Adgangskode er påkrævet")]
+        public string Password { get; set; }
+    }
+}

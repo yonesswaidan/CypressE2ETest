@@ -1,0 +1,140 @@
+﻿@page "/booking"
+@inject BookingService BookingService
+@inject NavigationManager Navigation
+@inject UserState UserState
+@using System.ComponentModel.DataAnnotations
+@rendermode InteractiveServer
+
+<h3>Opret Booking</h3>
+
+@if (!UserState.IsLoggedIn)
+{
+    <div class="alert alert-danger">Ukendt bruger. Du skal logge ind for at oprette en booking.</div>
+    <button class="btn btn-secondary" @onclick="NavigateToLogin">Gå til login</button>
+}
+else if (isSuccess)
+{
+    <div class="alert alert-success">Booking oprettet!</div>
+}
+else
+{
+    <EditForm Model="@bookingModel" OnValidSubmit="HandleBooking" FormName="bookingForm">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label for="username" class="form-label">Brugernavn:</label>
+            <InputText @bind-Value="bookingModel.Username" id="username" class="form-control" disabled />
+        </div>
+
+        <div class="mb-3">
+            <label for="startDate" class="form-label">Startdato:</label>
+            <InputDate @bind-Value="bookingModel.StartDate" id="startDate" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label for="endDate" class="form-label">Slutdato:</label>
+            <InputDate @bind-Value="bookingModel.EndDate" id="endDate" class="form-control" />
+            @if (validationMessage != null)
+            {
+                <div class="text-danger">@validationMessage</div>
+            }
+        </div>
+
+        <div class="mb-3">
+            <label for="guests" class="form-label">Antal gæster:</label>
+            <InputText @bind-Value="GuestsInput" id="guests" class="form-control" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Opret Booking</button>
+    </EditForm>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger mt-2">@errorMessage</div>
+    }
+}
+
+@code {
+    private BookingModel bookingModel = new BookingModel();
+    private bool isSuccess = false;
+    private string errorMessage;
+    private string validationMessage;
+    private string GuestsInput;
+
+    protected override void OnInitialized()
+    {
+        if (UserState.IsLoggedIn)
+        {
+            bookingModel.Username = UserState.LoggedInUsername;
+            bookingModel.StartDate = DateTime.Today;
+            bookingModel.EndDate = DateTime.Today;
+            bookingModel.NumberOfGuests = 1;
+            GuestsInput = bookingModel.NumberOfGuests.ToString();
+        }
+        else
+        {
+            bookingModel.Username = "Ukendt bruger";
+        }
+    }
+
+    private async Task HandleBooking()
+    {
+        validationMessage = null;
+        errorMessage = null;
+
+        // Valider antal gæster
+        if (!int.TryParse(GuestsInput, out int guests) || guests < 1 || guests > 100)
+        {
+            validationMessage = "Antal gæster skal være et tal mellem 1 og 100.";
+            return;
+        }
+
+        bookingModel.NumberOfGuests = guests;
+
+        // Valider datoer
+        if (bookingModel.EndDate < bookingModel.StartDate)
+        {
+            validationMessage = "Slutdato må ikke være før startdato.";
+            return;
+        }
+
+        var success = await BookingService.CreateBookingAsync(
+            bookingModel.Username,
+            bookingModel.StartDate,
+            bookingModel.EndDate,
+            bookingModel.NumberOfGuests
+        );
+
+        if (success)
+        {
+            isSuccess = true;
+        }
+        else
+        {
+            isSuccess = false;
+            errorMessage = "Fejl ved oprettelse af booking. Tjek input.";
+        }
+    }
+
+    private void NavigateToLogin()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    public class BookingModel
+    {
+        [Required(ErrorMessage = "Brugernavn er påkrævet")]
+        public string Username { get; set; }
+
+        [Required(ErrorMessage = "Startdato er påkrævet")]
+        public DateTime StartDate { get; set; } = DateTime.Today;
+
+        [Required(ErrorMessage = "Slutdato er påkrævet")]
+        public DateTime EndDate { get; set; } = DateTime.Today;
+
+        [Required(ErrorMessage = "Antal gæster er påkrævet")]
+        [Range(1, 100, ErrorMessage = "Antal gæster skal være mindst 1")]
+        public int NumberOfGuests { get; set; } = 1;
+    }
+}

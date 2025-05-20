@@ -1,0 +1,65 @@
+﻿@page "/bookinglist"
+@inject BookingService BookingService
+@inject UserState UserState
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<h3>Mine Bookinger</h3>
+
+@if (!UserState.IsLoggedIn)
+{
+    <div class="alert alert-danger">
+        Du er ikke logget ind. <button class="btn btn-link p-0" @onclick="NavigateToLogin">Log ind</button> for at se dine bookinger.
+    </div>
+}
+else if (isLoading)
+{
+    <p>Indlæser bookinger...</p>
+}
+else if (bookings == null || bookings.Count == 0)
+{
+    <p>Ingen bookinger fundet.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Start Dato</th>
+                <th>Slut Dato</th>
+                <th>Antal Gæster</th>
+                <th>Oprettet</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var booking in bookings)
+            {
+                <tr>
+                    <td>@booking.StartDate.ToString("dd-MM-yyyy")</td>
+                    <td>@booking.EndDate.ToString("dd-MM-yyyy")</td>
+                    <td>@booking.NumberOfGuests</td>
+                    <td>@booking.CreatedAt.ToString("dd-MM-yyyy HH:mm")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<CypressE2ETest.Models.Booking> bookings;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (UserState.IsLoggedIn)
+        {
+            bookings = await BookingService.GetUserBookingsAsync(UserState.LoggedInUsername);
+        }
+        isLoading = false;
+    }
+
+    private void NavigateToLogin()
+    {
+        Navigation.NavigateTo("/");
+    }
+}
