@@ -1,10 +1,11 @@
 const { defineConfig } = require("cypress");
 
 module.exports = defineConfig({
-  projectId: '37yfow',
-  e2e: {
-    setupNodeEvents(on, config) {
-      // implement node event listeners here
+    e2e: {
+        baseUrl: 'http://localhost:5299', // eller den port du har sat i .NET
+        specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}', // <-- vigtigt for at finde testfiler
+        setupNodeEvents(on, config) {
+            // implement node event listeners here
+        },
     },
-  },
 });
