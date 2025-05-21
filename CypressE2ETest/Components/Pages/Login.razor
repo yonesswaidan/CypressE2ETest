@@ -3,6 +3,7 @@
 @inject UserService UserService
 @inject NavigationManager Navigation
 @inject UserState UserState
+@inject IJSRuntime JS
 @rendermode InteractiveServer
 
 <h3>Login</h3>
@@ -13,21 +14,23 @@
 }
 else
 {
-    <EditForm EditContext="loginEditContext" OnValidSubmit="HandleLogin">
+    <EditForm EditContext="loginEditContext" OnValidSubmit="HandleLogin" FormName="loginForm">
         <DataAnnotationsValidator />
         <ValidationSummary />
 
         <div>
             <label>Brugernavn:</label>
-            <InputText @bind-Value="loginModel.Username" class="form-control" />
+            <InputText @bind-Value="loginModel.Username" id="username" class="form-control" />
+            <ValidationMessage For="@(() => loginModel.Username)" />
         </div>
 
         <div>
             <label>Adgangskode:</label>
-            <InputText @bind-Value="loginModel.Password" type="password" class="form-control" />
+            <InputText @bind-Value="loginModel.Password" id="password" type="password" class="form-control" />
+            <ValidationMessage For="@(() => loginModel.Password)" />
         </div>
 
-        <button type="submit">Log ind</button>
+        <button type="submit" id="loginBtn">Log ind</button>
     </EditForm>
 
     @if (!string.IsNullOrEmpty(errorMessage))
@@ -36,7 +39,7 @@ else
     }
 }
 
-<button @onclick="NavigateToRegister">Opret ny konto</button>
+<button id="goToRegister" @onclick="NavigateToRegister">Opret ny konto</button>
 
 @code {
     private LoginModel loginModel = new();
@@ -50,13 +53,40 @@ else
         loginEditContext = new EditContext(loginModel);
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("eval", @"
+                window.setLoginFields = (username, password) => {
+                    const u = document.querySelector('#username');
+                    const p = document.querySelector('#password');
+                    if (u && p) {
+                        u.value = username;
+                        u.dispatchEvent(new Event('input', { bubbles: true }));
+                        u.dispatchEvent(new Event('change', { bubbles: true }));
+
+                        p.value = password;
+                        p.dispatchEvent(new Event('input', { bubbles: true }));
+                        p.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                };
+
+                window.clickGoToRegister = () => {
+                    const btn = document.querySelector('#goToRegister');
+                    if (btn) btn.click();
+                };
+            ");
+        }
+    }
+
     private async Task HandleLogin()
     {
         var result = await UserService.ValidateUserAsync(loginModel.Username, loginModel.Password);
 
         if (result)
         {
-            UserState.SetUser(loginModel.Username); // Opdater UserState her
+            UserState.SetUser(loginModel.Username);
             isSuccess = true;
             errorMessage = null;
             Navigation.NavigateTo("/booking");
@@ -66,7 +96,6 @@ else
             errorMessage = "Forkert brugernavn eller adgangskode.";
         }
     }
-
 
     private void NavigateToRegister()
     {

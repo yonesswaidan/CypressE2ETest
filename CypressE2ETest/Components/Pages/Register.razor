@@ -2,6 +2,7 @@
 @using System.ComponentModel.DataAnnotations
 @inject UserService UserService
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 @rendermode InteractiveServer
 
 <h3>Opret Konto</h3>
@@ -13,21 +14,23 @@
 }
 else
 {
-    <EditForm EditContext="registerEditContext" OnValidSubmit="HandleRegister">
+    <EditForm EditContext="registerEditContext" OnValidSubmit="HandleRegister" FormName="registerForm">
         <DataAnnotationsValidator />
         <ValidationSummary />
 
         <div>
             <label>Brugernavn:</label>
-            <InputText @bind-Value="registerModel.Username" class="form-control" />
+            <InputText @bind-Value="registerModel.Username" id="reg-username" class="form-control" />
+            <ValidationMessage For="@(() => registerModel.Username)" />
         </div>
 
         <div>
             <label>Adgangskode:</label>
-            <InputText @bind-Value="registerModel.Password" type="password" class="form-control" />
+            <InputText @bind-Value="registerModel.Password" id="reg-password" type="password" class="form-control" />
+            <ValidationMessage For="@(() => registerModel.Password)" />
         </div>
 
-        <button type="submit">Opret Konto</button>
+        <button type="submit" id="registerBtn">Opret Konto</button>
     </EditForm>
 
     @if (!string.IsNullOrEmpty(errorMessage))
@@ -36,7 +39,7 @@ else
     }
 }
 
-<button @onclick="NavigateToLogin">Tilbage til login</button>
+<button id="goToLogin" @onclick="NavigateToLogin">Tilbage til login</button>
 
 @code {
     private RegisterModel registerModel = new RegisterModel();
@@ -48,6 +51,33 @@ else
     protected override void OnInitialized()
     {
         registerEditContext = new EditContext(registerModel);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("eval", @"
+                window.setRegisterFields = (username, password) => {
+                    const u = document.querySelector('#reg-username');
+                    const p = document.querySelector('#reg-password');
+                    if (u && p) {
+                        u.value = username;
+                        u.dispatchEvent(new Event('input', { bubbles: true }));
+                        u.dispatchEvent(new Event('change', { bubbles: true }));
+
+                        p.value = password;
+                        p.dispatchEvent(new Event('input', { bubbles: true }));
+                        p.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                };
+
+                window.clickGoToLogin = () => {
+                    const btn = document.querySelector('#goToLogin');
+                    if (btn) btn.click();
+                };
+            ");
+        }
     }
 
     private async Task HandleRegister()

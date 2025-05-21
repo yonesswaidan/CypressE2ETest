@@ -1,25 +1,34 @@
-// ***********************************************
-// This example commands.js shows you how to
-// create various custom commands and overwrite
-// existing commands.
-//
-// For more comprehensive examples of custom
-// commands please read more here:
-// https://on.cypress.io/custom-commands
-// ***********************************************
-//
-//
-// -- This is a parent command --
-// Cypress.Commands.add('login', (email, password) => { ... })
-//
-//
-// -- This is a child command --
-// Cypress.Commands.add('drag', { prevSubject: 'element'}, (subject, options) => { ... })
-//
-//
-// -- This is a dual command --
-// Cypress.Commands.add('dismiss', { prevSubject: 'optional'}, (subject, options) => { ... })
-//
-//
-// -- This will overwrite an existing command --
-// Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+Cypress.Commands.add('fillLoginForm', (username, password) => {
+    cy.window({ timeout: 10000 }).should('have.property', 'setLoginFields')
+    cy.window().then(win => {
+        win.setLoginFields(username, password)
+    })
+    cy.get('#loginBtn').should('be.visible')
+})
+
+Cypress.Commands.add('clickGoToRegister', () => {
+    cy.window().should('have.property', 'clickGoToRegister')
+    cy.window().then(win => {
+        win.clickGoToRegister()
+    })
+})
+
+Cypress.Commands.add('login', (username, password) => {
+    cy.fillLoginForm(username, password)
+    cy.get('#loginBtn').click()
+})
+
+Cypress.Commands.add('fillRegisterForm', (username, password) => {
+    cy.window({ timeout: 10000 }).should('have.property', 'setRegisterFields')
+    cy.window().then(win => {
+        win.setRegisterFields(username, password)
+    })
+    cy.get('#registerBtn').should('be.visible')
+})
+
+Cypress.Commands.add('clickGoToLogin', () => {
+    cy.window().should('have.property', 'clickGoToLogin')
+    cy.window().then(win => {
+        win.clickGoToLogin()
+    })
+})

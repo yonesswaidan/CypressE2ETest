@@ -1,0 +1,24 @@
+{
+  "valid": {
+    "username": "testuser5",
+    "password": "password123"
+  },
+  "invalid": {
+    "username": "forkertbruger",
+    "password": "forkertkode"
+  },
+  "existing": {
+    "username": "testuser",
+    "password": "password123"
+  },
+  "edgeCases": [
+    {
+      "username": "a",
+      "password": "123"
+    },
+    {
+      "username": "",
+      "password": ""
+    }
+  ]
+}
