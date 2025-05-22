@@ -4,25 +4,32 @@
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
+
+<link href="css/bookinglist.css" rel="stylesheet" />
+
 <h3>Mine Bookinger</h3>
 
 @if (!UserState.IsLoggedIn)
 {
     <div class="alert alert-danger">
-        Du er ikke logget ind. <button class="btn btn-link p-0" @onclick="NavigateToLogin">Log ind</button> for at se dine bookinger.
+        <!-- Test: Skal vise login-opfordring hvis man ikke er logget ind -->
+        Du er ikke logget ind. <button class="btn-link" @onclick="NavigateToLogin">Log ind</button> for at se dine bookinger.
     </div>
 }
 else if (isLoading)
 {
+    <!-- Test: Skal vise loading-indikator -->
     <p>Indlæser bookinger...</p>
 }
 else if (bookings == null || bookings.Count == 0)
 {
+    <!-- Test: Skal vise 'Ingen bookinger' for nye brugere -->
     <p>Ingen bookinger fundet.</p>
 }
 else
 {
-    <table class="table table-striped">
+    <!-- Test: Skal vise bookings i tabel hvis data findes -->
+    <table class="table">
         <thead>
             <tr>
                 <th>Start Dato</th>

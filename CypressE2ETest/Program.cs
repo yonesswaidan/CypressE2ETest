@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Components.Server;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Tilføj services til DI-containeren
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -25,7 +24,6 @@ builder.Services.AddScoped(sp =>
     return new HttpClient { BaseAddress = new Uri(navigationManager.BaseUri) };
 });
 
-// Cookie autentificering (uden Identity)
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -35,9 +33,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 builder.Services.AddAuthorizationCore();
 
-// Tilføj en simpel AuthenticationStateProvider, fx:
 builder.Services.AddScoped<AuthenticationStateProvider,
-    ServerAuthenticationStateProvider>();  // ServerAuthenticationStateProvider er en simpel implementering
+    ServerAuthenticationStateProvider>(); 
 
 var app = builder.Build();
 

@@ -5,41 +5,48 @@
 @inject IJSRuntime JS
 @rendermode InteractiveServer
 
-<h3>Opret Konto</h3>
 
-@if (isSuccess)
-{
-    <p style="color:green;">Kontoen blev oprettet!</p>
-    <a href="/">Gå til login</a>
-}
-else
-{
-    <EditForm EditContext="registerEditContext" OnValidSubmit="HandleRegister" FormName="registerForm">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+<link href="css/register.css" rel="stylesheet" />
 
-        <div>
-            <label>Brugernavn:</label>
-            <InputText @bind-Value="registerModel.Username" id="reg-username" class="form-control" />
-            <ValidationMessage For="@(() => registerModel.Username)" />
-        </div>
+<div class="auth-wrapper">
+    <h1 class="page-title">Opret en ny konto</h1>
 
-        <div>
-            <label>Adgangskode:</label>
-            <InputText @bind-Value="registerModel.Password" id="reg-password" type="password" class="form-control" />
-            <ValidationMessage For="@(() => registerModel.Password)" />
-        </div>
-
-        <button type="submit" id="registerBtn">Opret Konto</button>
-    </EditForm>
-
-    @if (!string.IsNullOrEmpty(errorMessage))
+    @if (isSuccess)
     {
-        <p style="color:red;">@errorMessage</p>
+        <!-- Test: Vis succesbesked ved vellykket registrering -->
+        <p style="color:green;">Kontoen blev oprettet!</p>
+        <a href="/">Gå til login</a>
     }
-}
+    else
+    {
+        <!-- Test: Udfyld formular og submit -->
+        <EditForm EditContext="registerEditContext" OnValidSubmit="HandleRegister" FormName="registerForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
 
-<button id="goToLogin" @onclick="NavigateToLogin">Tilbage til login</button>
+            <div>
+                <label>Brugernavn:</label>
+                <InputText @bind-Value="registerModel.Username" id="reg-username" class="form-control" />
+                <ValidationMessage For="@(() => registerModel.Username)" />
+            </div>
+
+            <div>
+                <label>Adgangskode:</label>
+                <InputText @bind-Value="registerModel.Password" id="reg-password" type="password" class="form-control" />
+                <ValidationMessage For="@(() => registerModel.Password)" />
+            </div>
+
+            <button type="submit" id="registerBtn">Opret Konto</button>
+            <button type="button" id="goToLogin" @onclick="NavigateToLogin">Tilbage til login</button>
+        </EditForm>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <!-- Test: Vis fejlbesked ved mislykket register -->
+            <p style="color:red;">@errorMessage</p>
+        }
+    }
+</div>
 
 @code {
     private RegisterModel registerModel = new RegisterModel();
@@ -57,6 +64,7 @@ else
     {
         if (firstRender)
         {
+            // test: Sæt inputfelter og klik på login-knap
             await JS.InvokeVoidAsync("eval", @"
                 window.setRegisterFields = (username, password) => {
                     const u = document.querySelector('#reg-username');
@@ -82,6 +90,7 @@ else
 
     private async Task HandleRegister()
     {
+        // Test: Forsøg at oprette bruger og vis respons
         var success = await UserService.RegisterUserAsync(registerModel.Username, registerModel.Password);
         if (success)
         {

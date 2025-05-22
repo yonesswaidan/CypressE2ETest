@@ -9,6 +9,6 @@ namespace CypressE2ETest.Data
             : base(options) { }
 
         public DbSet<User> Users { get; set; }
-        public DbSet<Booking> Bookings { get; set; }  // <- tilføjet
+        public DbSet<Booking> Bookings { get; set; }  
     }
 }

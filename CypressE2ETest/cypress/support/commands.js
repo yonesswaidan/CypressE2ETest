@@ -32,3 +32,15 @@ Cypress.Commands.add('clickGoToLogin', () => {
         win.clickGoToLogin()
     })
 })
+
+Cypress.Commands.add('loginViaWindow', (username, password) => {
+    cy.window({ timeout: 10000 }).should('have.property', 'setLoginFields')
+    cy.window().then(win => win.setLoginFields(username, password))
+    cy.get('#loginBtn').should('be.visible')
+})
+
+Cypress.Commands.add('fillBookingForm', (start, end, guests) => {
+    cy.window({ timeout: 10000 }).should('have.property', 'setBookingFields')
+    cy.window().then(win => win.setBookingFields(start, end, guests))
+    cy.get('#bookingBtn').should('be.visible')
+})

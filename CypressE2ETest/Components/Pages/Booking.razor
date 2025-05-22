@@ -6,55 +6,65 @@
 @using System.ComponentModel.DataAnnotations
 @rendermode InteractiveServer
 
-<h3>Hej</h3>
+<div class="booking-wrapper">
+    <h3>Vælg datoer:</h3>
 
-@if (!UserState.IsLoggedIn)
-{
-    <div class="alert alert-danger">Ukendt bruger. Du skal logge ind for at oprette en booking.</div>
-    <button class="btn btn-secondary" @onclick="NavigateToLogin">Gå til login</button>
-}
-else if (isSuccess)
-{
-    <div class="alert alert-success">Booking oprettet!</div>
-}
-else
-{
-    <EditForm Model="@bookingModel" OnValidSubmit="HandleBooking" FormName="bookingForm">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
-
-        <div class="mb-3">
-            <label for="username" class="form-label">Brugernavn:</label>
-            <InputText @bind-Value="bookingModel.Username" id="username" class="form-control" disabled />
-        </div>
-
-        <div class="mb-3">
-            <label for="startDate" class="form-label">Startdato:</label>
-            <InputDate @bind-Value="bookingModel.StartDate" id="startDate" class="form-control" />
-        </div>
-
-        <div class="mb-3">
-            <label for="endDate" class="form-label">Slutdato:</label>
-            <InputDate @bind-Value="bookingModel.EndDate" id="endDate" class="form-control" />
-            @if (validationMessage != null)
-            {
-                <div class="text-danger">@validationMessage</div>
-            }
-        </div>
-
-        <div class="mb-3">
-            <label for="guests" class="form-label">Antal gæster:</label>
-            <InputText @bind-Value="GuestsInput" id="guests" class="form-control" />
-        </div>
-
-        <button type="submit" id="bookingBtn" class="btn btn-primary">Opret Booking</button>
-    </EditForm>
-
-    @if (!string.IsNullOrEmpty(errorMessage))
+    @if (!UserState.IsLoggedIn)
     {
-        <div class="alert alert-danger mt-2">@errorMessage</div>
+    // Black-box test: Verificér at uautoriserede brugere ikke kan booke.
+        // Cypress-test case: Kontrollér at advarselsmeddelelse vises ved manglende login.
+        <div class="alert alert-danger">Ukendt bruger. Du skal logge ind for at oprette en booking.</div>
+        <button class="btn btn-secondary" @onclick="NavigateToLogin">Gå til login</button>
     }
-}
+    else if (isSuccess)
+    {
+        // Black-box test: Tjek at en succesfuld booking viser korrekt succesbesked.
+        <div class="alert alert-success">Booking oprettet!</div>
+    }
+    else
+    {
+        <EditForm Model="@bookingModel" OnValidSubmit="HandleBooking" FormName="bookingForm" class="booking-form">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="username" class="form-label">Brugernavn:</label>
+                <InputText @bind-Value="bookingModel.Username" id="username" class="form-control" disabled />
+                <!-- Black-box test: Verificér at brugernavn er korrekt autofyldt og ikke kan ændres -->
+            </div>
+
+            <div class="mb-3">
+                <label for="startDate" class="form-label">Startdato:</label>
+                <InputDate @bind-Value="bookingModel.StartDate" id="startDate" class="form-control" />
+                <!-- Cypress kan teste feltvalidering og datoændringer -->
+            </div>
+
+            <div class="mb-3">
+                <label for="endDate" class="form-label">Slutdato:</label>
+                <InputDate @bind-Value="bookingModel.EndDate" id="endDate" class="form-control" />
+                @if (validationMessage != null)
+                {
+                    <div class="text-danger">@validationMessage</div>
+                    <!-- Cypress kan her validere at korrekt fejl vises ved ugyldige datoer -->
+                }
+            </div>
+
+            <div class="mb-3">
+                <label for="guests" class="form-label">Antal gæster:</label>
+                <InputText @bind-Value="GuestsInput" id="guests" class="form-control" />
+                <!-- Black-box test: Test for korrekt håndtering af ugyldigt input (bogstaver, tal < 1, tal > 100) -->
+            </div>
+
+            <button type="submit" id="bookingBtn" class="btn btn-primary">Opret Booking</button>
+        </EditForm>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger mt-2">@errorMessage</div>
+            <!-- Black-box test: Bekræft korrekt håndtering og visning af fejlsituationer -->
+        }
+    }
+</div>
 
 @code {
     private BookingModel bookingModel = new BookingModel();
@@ -72,6 +82,7 @@ else
             bookingModel.EndDate = DateTime.Today;
             bookingModel.NumberOfGuests = 1;
             GuestsInput = bookingModel.NumberOfGuests.ToString();
+            // Cypress test: Sikr at felter initialiseres korrekt efter login
         }
         else
         {
@@ -83,6 +94,7 @@ else
     {
         if (firstRender)
         {
+            // Black-box test: Verify at JavaScript interager korrekt med DOM for input.
             await JS.InvokeVoidAsync("eval", @"
                 window.setBookingFields = (start, end, guests) => {
                     const startDate = document.querySelector('#startDate');
@@ -114,6 +126,7 @@ else
 
         if (!int.TryParse(GuestsInput, out int guests) || guests < 1 || guests > 100)
         {
+            // Black-box test: Tjek validering af gæsteantal
             validationMessage = "Antal gæster skal være et tal mellem 1 og 100.";
             return;
         }
@@ -122,7 +135,19 @@ else
 
         if (bookingModel.EndDate < bookingModel.StartDate)
         {
+            // Cypress test: Indtast slutdato før startdato og bekræft validering
             validationMessage = "Slutdato må ikke være før startdato.";
+            return;
+        }
+
+        bool isAvailable = await BookingService.AreDatesAvailableAsync(
+            bookingModel.StartDate,
+            bookingModel.EndDate
+        );
+
+        if (!isAvailable)
+        {
+            errorMessage = "De valgte datoer er allerede booket.";
             return;
         }
 
@@ -135,6 +160,7 @@ else
 
         if (success)
         {
+            // Cypress test: Kontrollér at booking vises som oprettet ved succes
             isSuccess = true;
         }
         else
@@ -146,6 +172,7 @@ else
 
     private void NavigateToLogin()
     {
+        // Cypress kan kontrollere navigation
         Navigation.NavigateTo("/");
     }
 

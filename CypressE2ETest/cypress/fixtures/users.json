@@ -1,11 +1,15 @@
 {
   "valid": {
-    "username": "testuser5",
+    "username": "testuser",
     "password": "password123"
   },
   "invalid": {
     "username": "forkertbruger",
     "password": "forkertkode"
+  },
+  "gyldig": {
+    "username": "testuser12345",
+    "password": "password123"
   },
   "existing": {
     "username": "testuser",

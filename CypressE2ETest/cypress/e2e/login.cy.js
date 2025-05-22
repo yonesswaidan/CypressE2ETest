@@ -17,15 +17,15 @@
         cy.get('p', { timeout: 5000 }).should('contain.text', 'Forkert brugernavn eller adgangskode.')
     })
 
-    it('Viser valideringsfejl ved tomme felter', () => {
-        cy.get('#loginBtn').click()
+it('Viser valideringsfejl ved tomme felter', () => {
+    cy.get('#loginBtn').click()
 
-        cy.get('#username').parent().find('.validation-message', { timeout: 5000 })
-            .should('contain.text', 'Brugernavn er påkrævet')
+    cy.get('#username').parent().find('.validation-message', { timeout: 5000 })
+        .should('contain.text', 'Brugernavn er påkrævet')
 
-        cy.get('#password').parent().find('.validation-message', { timeout: 5000 })
-            .should('contain.text', 'Adgangskode er påkrævet')
-    })
+    cy.get('#password').parent().find('.validation-message', { timeout: 5000 })
+        .should('contain.text', 'Adgangskode er påkrævet')
+})
 
     it('Navigerer til registreringssiden', () => {
         cy.clickGoToRegister()

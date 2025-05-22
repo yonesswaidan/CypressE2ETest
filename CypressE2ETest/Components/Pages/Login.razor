@@ -6,40 +6,46 @@
 @inject IJSRuntime JS
 @rendermode InteractiveServer
 
-<h3>Login</h3>
+<link href="css/login.css" rel="stylesheet" />
 
-@if (isSuccess)
-{
-    <p style="color:green;">Du er nu logget ind!</p>
-}
-else
-{
-    <EditForm EditContext="loginEditContext" OnValidSubmit="HandleLogin" FormName="loginForm">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+<div class="auth-wrapper">
+    <h1 class="page-title">Lej Kaspers Airbnb</h1>
 
-        <div>
-            <label>Brugernavn:</label>
-            <InputText @bind-Value="loginModel.Username" id="username" class="form-control" />
-            <ValidationMessage For="@(() => loginModel.Username)" />
-        </div>
-
-        <div>
-            <label>Adgangskode:</label>
-            <InputText @bind-Value="loginModel.Password" id="password" type="password" class="form-control" />
-            <ValidationMessage For="@(() => loginModel.Password)" />
-        </div>
-
-        <button type="submit" id="loginBtn">Log ind</button>
-    </EditForm>
-
-    @if (!string.IsNullOrEmpty(errorMessage))
+    @if (isSuccess)
     {
-        <p style="color:red;">@errorMessage</p>
+        <!-- Test: Bekræftelsesbesked ved succes login -->
+        <p style="color:green;">Du er nu logget ind!</p>
     }
-}
+    else
+    {
+        <!-- Test: Udfyld login-formular og submit -->
+        <EditForm EditContext="loginEditContext" OnValidSubmit="HandleLogin" FormName="loginForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
 
-<button id="goToRegister" @onclick="NavigateToRegister">Opret ny konto</button>
+            <div>
+                <label>Brugernavn:</label>
+                <InputText @bind-Value="loginModel.Username" id="username" class="form-control" />
+                <ValidationMessage For="@(() => loginModel.Username)" />
+            </div>
+
+            <div>
+                <label>Adgangskode:</label>
+                <InputText @bind-Value="loginModel.Password" id="password" type="password" class="form-control" />
+                <ValidationMessage For="@(() => loginModel.Password)" />
+            </div>
+
+            <button type="submit" id="loginBtn">Log ind</button>
+            <button type="button" id="goToRegister" @onclick="NavigateToRegister">Opret ny konto</button>
+        </EditForm>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <!-- Test: Vis fejlbesked ved ugyldige login-oplysninger -->
+            <p style="color:red;">@errorMessage</p>
+        }
+    }
+</div>
 
 @code {
     private LoginModel loginModel = new();
@@ -57,6 +63,7 @@ else
     {
         if (firstRender)
         {
+            // Cypress test-hjælp: Sæt login-felter eller klik Opret-knap automatisk
             await JS.InvokeVoidAsync("eval", @"
                 window.setLoginFields = (username, password) => {
                     const u = document.querySelector('#username');
@@ -82,6 +89,7 @@ else
 
     private async Task HandleLogin()
     {
+        // Test: test login og redirect
         var result = await UserService.ValidateUserAsync(loginModel.Username, loginModel.Password);
 
         if (result)

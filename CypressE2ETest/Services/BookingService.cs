@@ -23,8 +23,8 @@ public class BookingService
         var booking = new Booking
         {
             Username = username,
-            StartDate = startDate,
-            EndDate = endDate,
+            StartDate = startDate.Date,
+            EndDate = endDate.Date,
             NumberOfGuests = guests,
             CreatedAt = DateTime.Now
         };
@@ -41,5 +41,16 @@ public class BookingService
             .AsNoTracking()
             .Where(b => b.Username == username)
             .ToListAsync();
+    }
+    public async Task<bool> AreDatesAvailableAsync(DateTime startDate, DateTime endDate)
+    {
+        var overlaps = await _context.Bookings
+            .AsNoTracking()
+            .Where(b => (startDate.Date <= b.EndDate.Date && endDate.Date >= b.StartDate.Date))
+            .ToListAsync();
+
+        Console.WriteLine($"Checking overlaps from {startDate.Date} to {endDate.Date}. Overlaps found: {overlaps.Count}");
+
+        return overlaps.Count == 0;
     }
 }

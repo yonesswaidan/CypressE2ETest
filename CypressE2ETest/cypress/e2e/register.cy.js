@@ -5,7 +5,7 @@
 
     it('Opretter konto med gyldige oplysninger', () => {
         cy.fixture('users').then(users => {
-            cy.fillRegisterForm(users.valid.username, users.valid.password)
+            cy.fillRegisterForm(users.gyldig.username, users.gyldig.password)
         })
         cy.get('#registerBtn').click()
         cy.get('p', { timeout: 10000 }).should('contain.text', 'Kontoen blev oprettet!')
